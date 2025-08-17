@@ -1,3 +1,0 @@
-Name: John Doe
-Email: john@example.com
-Phone: 123-456-7890
