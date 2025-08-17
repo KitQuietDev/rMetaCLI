@@ -44,15 +44,25 @@ def scrub(file_path: str) -> None:
 
     try:
         if ext in EXIF_EXTENSIONS:
-            piexif.remove(str(path))
-            logger.info(f"✅ EXIF metadata removed from: {file_path}")
+            # Step 1: Remove EXIF with piexif
+            try:
+                piexif.remove(str(path))
+            except Exception as e:
+                logger.warning(f"piexif.remove failed: {e}")
+            # Step 2: Re-save with Pillow to strip all info blocks
+            with Image.open(path) as img:
+                data = list(img.getdata())
+                scrubbed = Image.new(img.mode, img.size)
+                scrubbed.putdata(data)
+                scrubbed.save(path, format='JPEG', quality=95, optimize=True)
+            logger.info(f"✅ All metadata forcibly removed from JPEG: {file_path}")
         elif ext in OTHER_EXTENSIONS:
             with Image.open(path) as img:
                 img_data = list(img.getdata())
                 scrubbed = Image.new(img.mode, img.size)
                 scrubbed.putdata(img_data)
                 scrubbed.save(path)
-                logger.info(f"✅ Metadata stripped from non-EXIF format: {file_path}")
+            logger.info(f"✅ Metadata stripped from non-EXIF format: {file_path}")
         else:
             raise ValueError(f"No handler available for file extension: {ext}")
     except Exception as e:

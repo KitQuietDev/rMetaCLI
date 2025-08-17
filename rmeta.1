@@ -1,0 +1,66 @@
+." Manpage for rmeta
+.TH RMETA 1 "August 2025" "rMeta CLI v0.1.0" "User Commands"
+.SH NAME
+rmeta \- local file metadata scrubber
+.SH SYNOPSIS
+.B rmeta [options] FILES...
+.SH DESCRIPTION
+rMeta is a local-only file metadata scrubber for privacy-focused users. It removes metadata from files without sending data anywhere.
+.SH COMMANDS
+.TP
+.B cleanup
+Remove all session files and directories.
+.TP
+.B download OUTPUT_DIR
+Download processed files to the specified output directory.
+.SH OPTIONS
+.TP
+.B --gpg-key <path>
+Use GPG public key for encryption.
+.TP
+.B --sha256
+Generate SHA256 hashfiles for processed files.
+.TP
+.B --dry-run
+Show actions without modifying files.
+.TP
+.B --verbose, -v
+Enable detailed logging.
+.TP
+.B --clean-after
+Automatically clean session files after processing.
+.TP
+.B --filetype <type>
+Only process files of a certain type (e.g., pdf, docx).
+.TP
+.B --r
+Recursively process files from directories.
+.TP
+.B --config <path>
+Use a custom config file.
+.TP
+.B --version
+Print version info.
+.TP
+.B --help
+Print help for commands.
+.SH ENVIRONMENT
+.TP
+.B UPLOAD_FOLDER
+Set the session directory (default: /tmp/rmeta_uploads).
+.TP
+.B SESSION_TIMEOUT
+Session cleanup interval in seconds (default: 600).
+.SH EXAMPLES
+.TP
+.B rmeta --r --filetype pdf /docs
+.TP
+.B rmeta --gpg-key mykey.pub --sha256 --clean-after file1.pdf file2.docx
+.TP
+.B rmeta --dry-run --verbose file1.pdf file2.docx
+.TP
+.B rmeta --cleanup
+.SH AUTHOR
+KitQuietDev
+.SH SEE ALSO
+rmeta(1), pyinstaller(1)

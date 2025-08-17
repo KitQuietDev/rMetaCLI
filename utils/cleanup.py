@@ -22,30 +22,45 @@ def purge_uploads(upload_path):
     Deletes all contents of the uploads directory.
     Returns True if any files were removed, False if already clean.
     """
+    import random
     try:
         if not os.path.exists(upload_path):
             logger.info(f"📁 Uploads directory doesn't exist: {upload_path}")
             return False
-            
         contents = os.listdir(upload_path)
         if not contents:
             logger.info(f"✅ Uploads directory already clean: {upload_path}")
             return False
-            
-        # Remove all contents
+        # Securely overwrite and remove all contents
         for item in contents:
             item_path = os.path.join(upload_path, item)
             try:
-                if os.path.isfile(item_path) or os.path.islink(item_path):
+                if os.path.isfile(item_path):
+                    try:
+                        filesize = os.path.getsize(item_path)
+                        with open(item_path, 'wb') as f:
+                            f.write(os.urandom(filesize))
+                    except Exception as overwrite_err:
+                        logger.warning(f"⚠️ Could not overwrite {item_path}: {overwrite_err}")
                     os.remove(item_path)
                 elif os.path.isdir(item_path):
+                    # Overwrite all files in subdir before rmtree
+                    for root, _, files_in_dir in os.walk(item_path):
+                        for file_in_dir in files_in_dir:
+                            file_path = os.path.join(root, file_in_dir)
+                            try:
+                                filesize = os.path.getsize(file_path)
+                                with open(file_path, 'wb') as f:
+                                    f.write(os.urandom(filesize))
+                            except Exception as overwrite_err:
+                                logger.warning(f"⚠️ Could not overwrite {file_path}: {overwrite_err}")
                     shutil.rmtree(item_path)
+                elif os.path.islink(item_path):
+                    os.remove(item_path)
             except Exception as e:
                 logger.error(f"❌ Failed to remove {item_path}: {e}")
-                
-        logger.info(f"🔥 Purged uploads directory: {upload_path} ({len(contents)} items removed)")
+        logger.info(f"🔥 Securely purged uploads directory: {upload_path} ({len(contents)} items removed)")
         return True
-        
     except Exception as e:
         logger.error(f"❌ Failed to purge uploads directory: {e}")
         return True  # Assume dirty if purge failed
