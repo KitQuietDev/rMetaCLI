@@ -1,0 +1,7 @@
+*.py linguist-language=Python
+*.sh linguist-language=Shell
+*.md linguist-documentation
+*.txt linguist-documentation
+docs/* linguist-documentation
+man/* linguist-documentation
+*.html linguist-vendored
