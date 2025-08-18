@@ -30,12 +30,22 @@
 
 # Quick Start
 
+
 To get started on Linux or macOS:
+
+Clone the repository:
+
+```
+git clone https://gitlab.com/KitQuietDev/rmetacli.git
+cd rmetacli
+```
+
+Set up your environment:
 
 ```
 python3 -m venv ~/.rmeta_venv
 source ~/.rmeta_venv/bin/activate
-pip install -r /path/to/rmeta_cli/requirements.txt
+pip install -r requirements.txt
 ```
 
 Then run:
