@@ -59,6 +59,12 @@ rmeta --cleanup
 
 For Windows setup, see the [Windows](#windows) section below.
 
+
+---
+Interested in a web or containerized workflow instead of pure CLI?  
+Check out rMetaCLI's sibling: [rMeta for Docker (GitLab)](https://gitlab.com/KitQuietDev/rmeta) or [rMeta for Docker (GitHub)](https://github.com/KitQuietDev/rmeta).
+
+
 ---
 
 # Testing your setup
