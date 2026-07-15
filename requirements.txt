@@ -1,4 +1,4 @@
-black==25.1.0
+black==26.3.1
 blinker==1.9.0
 cffi==1.17.1
 cfgv==3.4.0
@@ -6,7 +6,7 @@ charset-normalizer==3.4.3
 click==8.2.1
 distlib==0.4.0
 et_xmlfile==2.0.0
-filelock==3.18.0
+filelock==3.20.3
 identify==2.6.12
 mccabe==0.7.0
 mypy_extensions==1.1.0
@@ -18,9 +18,9 @@ pre_commit==4.2.0
 pycodestyle==2.14.0
 pycparser==2.22
 pyflakes==3.4.0
-python-dotenv==1.0.1
+python-dotenv==1.2.2
 PyYAML==6.0.2
 rmeta-core @ git+https://github.com/KitQuietDev/rmeta-core.git@v0.1.0
 tqdm==4.66.4
 typing_extensions==4.14.1
-virtualenv==20.32.0
+virtualenv==20.36.1
