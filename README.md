@@ -36,8 +36,8 @@ To get started on Linux or macOS:
 Clone the repository:
 
 ```
-git clone https://gitlab.com/KitQuietDev/rmetacli.git
-cd rmetacli
+git clone https://github.com/KitQuietDev/rMetaCLI.git
+cd rMetaCLI
 ```
 
 Set up your environment:
@@ -62,7 +62,7 @@ For Windows setup, see the [Windows](#windows) section below.
 
 ---
 Interested in a web or containerized workflow instead of pure CLI?  
-Check out rMetaCLI's sibling: [rMeta for Docker (GitLab)](https://gitlab.com/KitQuietDev/rmeta) or [rMeta for Docker (GitHub)](https://github.com/KitQuietDev/rmeta).
+Check out rMetaCLI's sibling: [rMeta for Docker](https://github.com/KitQuietDev/rMeta).
 
 
 ---
