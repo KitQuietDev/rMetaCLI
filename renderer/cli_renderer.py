@@ -226,7 +226,7 @@ class CLIRenderer:
                     print(f"  {r['filename']}: {w}")
 
         if sha256:
-            from postprocessors.import_hashlib import generate_hash
+            from postprocessors.hash_generator import generate_hash
             for file in tqdm(supported, desc="SHA256", unit="file"):
                 hashfile = generate_hash(file, algo="sha256")
                 print(f"  SHA256 hashfile generated: {hashfile}")
