@@ -49,4 +49,3 @@ docker-compose.dev.yml
 #My files - KEEP OUT - DANGER DANGER DANGER
 /backups/
 /sandbox/
-.github/
