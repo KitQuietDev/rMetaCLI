@@ -39,7 +39,7 @@ class CLIRenderer:
         parser.add_argument('--r', action='store_true', help='Recursively process files in directory')
         parser.add_argument('--filetype', type=str, help='Only process files of this type (e.g., pdf, docx)')
         parser.add_argument('--auto-clean-interval', type=int, help='Set auto-cleanup interval in seconds')
-        parser.add_argument('--version', action='version', version='rMeta CLI v0.4.0')
+        parser.add_argument('--version', action='version', version='rMetaCLI v0.2.0')
         parser.add_argument('--config', type=str, help='Path to custom config file')
         parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose output')
         parser.add_argument('--gpg-key', type=str, help='Encrypt processed files with this GPG public key')

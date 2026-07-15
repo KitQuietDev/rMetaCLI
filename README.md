@@ -1,8 +1,8 @@
-# rMetaCLI v0.1.0 — Clean Your Files, Keep Your Privacy
+# rMetaCLI v0.2.0 — Clean Your Files, Keep Your Privacy
 
 ## Table of Contents
 
-- [rMetaCLI v0.1.0 — Clean Your Files, Keep Your Privacy](#rmetacli-v010--clean-your-files-keep-your-privacy)
+- [rMetaCLI v0.2.0 — Clean Your Files, Keep Your Privacy](#rmetacli-v020--clean-your-files-keep-your-privacy)
   - [Table of Contents](#table-of-contents)
 - [Quick Start](#quick-start)
 - [Testing your setup](#testing-your-setup)
