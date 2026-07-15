@@ -3,9 +3,9 @@
 import sys
 from config import load_config
 from renderer.cli_renderer import load_renderer as load_cli_renderer
-from utils.cleanup import purge_uploads, start_auto_cleanup, stop_all_cleanup
-from utils.chunking import audit_files, chunk_files_by_size, process_chunks
-from utils.system import get_available_memory_mb
+from rmeta_core.utils.cleanup import purge_uploads, start_auto_cleanup, stop_all_cleanup
+from rmeta_core.utils.chunking import audit_files, chunk_files_by_size, process_chunks
+from rmeta_core.utils.system import get_available_memory_mb
 
 # Entry point: wires together config, cleanup, and the CLI renderer.
 # No web server, no Docker required — everything runs locally.

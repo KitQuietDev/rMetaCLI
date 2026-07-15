@@ -7,9 +7,9 @@ import shutil
 from tqdm import tqdm
 from datetime import datetime
 from config import load_config
-from handlers import get_handler_for_extension
-from utils.cleanup import purge_uploads, check_uploads_dir
-from utils.chunking import audit_files, chunk_files_by_size, process_chunks
+from rmeta_core.handlers import get_handler_for_extension
+from rmeta_core.utils.cleanup import purge_uploads, check_uploads_dir
+from rmeta_core.utils.chunking import audit_files, chunk_files_by_size, process_chunks
 
 
 class CLIRenderer:
@@ -226,13 +226,13 @@ class CLIRenderer:
                     print(f"  {r['filename']}: {w}")
 
         if sha256:
-            from postprocessors.hash_generator import generate_hash
+            from rmeta_core.postprocessors.hash_generator import generate_hash
             for file in tqdm(supported, desc="SHA256", unit="file"):
                 hashfile = generate_hash(file, algo="sha256")
                 print(f"  SHA256 hashfile generated: {hashfile}")
                 log_event(f"SHA256 hashfile generated: {hashfile}")
         if gpg_key:
-            from postprocessors.gpg_encryptor import encrypt_with_gpg
+            from rmeta_core.postprocessors.gpg_encryptor import encrypt_with_gpg
             for file in tqdm(supported, desc="GPG Encrypt", unit="file"):
                 encrypted = encrypt_with_gpg(file, gpg_key)
                 print(f"  GPG encrypted: {encrypted}")
