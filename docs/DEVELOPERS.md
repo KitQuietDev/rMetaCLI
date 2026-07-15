@@ -1,106 +1,53 @@
-👩‍💻 DEVELOPERS.md
+# Developer notes
 
-Welcome to rMeta — a fast, clean, containerized tool for scrubbing metadata from sensitive files. If you're here, you're either curious, contributing, or critiquing — and you are absolutely welcome.
+Notes for anyone extending or maintaining rMetaCLI.
 
-This document is for developers, tinkerers, privacy nuts, field users, and anyone else who wants to extend or improve the project.
+## Project layout
 
-# 🧠 Project Philosophy
-
-rMeta is built around a few core principles:
-
-- Minimalism: Simple UI, focused functionality, no bloat.
-
-- Modularity: Every handler and postprocessor is self-contained and easily swappable.
-
-- Security-first: No metadata. Optional encryption. Designed for zero-trust environments.
-
-- Accessibility: Clear docs, helpful comments, and low barrier to entry.
-
-We want contributions from all experience levels — not just seasoned devs.
-# 🗂️ Project Layout
-
+```
 .
-├── app.py                     # Main Flask app
+├── app.py                    # Entry point
+├── config.py                 # Env/.env configuration loading
+├── renderer/cli_renderer.py  # Argument parsing and command dispatch
 ├── handlers/                 # File-type-specific metadata scrubbers
-├── postprocessors/          # Optional extras (GPG, hashing)
-├── static/                  # CSS and JavaScript
-├── templates/               # HTML (currently only index.html)
-├── uploads/                 # Temporary file storage (volume mounted)
-├── .env                     # Configuration (port, feature flags)
-├── Dockerfile               # Container setup
-├── docker-compose.yml       # Runtime orchestration
-└── docs/                    # This file and future developer docs
-
-# 🔌 Adding a New File Handler
-
-1. Create a new .py file in handlers/
-
-2. Define:
-
-```
-supported_extensions = {"ext1", "ext2"}  # lowercase only
-def scrub(file_path):
+├── postprocessors/           # Optional extras: GPG, hashing
+├── utils/                    # Cleanup, chunking, memory checks, PII scanning
+├── rmeta.1                   # Man page
+└── docs/                     # This file and related docs
 ```
 
-The app auto-discovers handlers at runtime.
+This is the CLI counterpart to [rMeta](https://github.com/KitQuietDev/rMeta), which wraps the same handlers in a Flask web UI. If you're adding a file handler or postprocessor, the two projects share the same pattern — check rMeta's `docs/DEVELOPERS.md` too if you're maintaining both.
 
-# 🧬 Adding a Postprocessor (e.g. Hashing, Encryption)
+## Adding a file handler
 
-1. Create a .py file in postprocessors/
+1. Create a new `.py` file in `handlers/`, named `<type>_handler.py`.
+2. Define `SUPPORTED_EXTENSIONS = {"ext1", "ext2"}` (lowercase) and a `scrub(file_path)` function.
+3. `handlers/__init__.py` auto-discovers any `*_handler.py` module and registers it by extension at startup — nothing else to wire up.
 
-2. Implement a callable (e.g. def generate_hash(...))
+## Adding a postprocessor
 
-3. Use .env to toggle options (ALLOW_HASH=true, etc.)
+1. Create a `.py` file in `postprocessors/`.
+2. Implement a callable, e.g. `generate_hash(...)`.
+3. Wire the call into `renderer/cli_renderer.py`'s `process_files()`, gated behind a CLI flag if it should be optional.
 
-4. app.py handles conditional execution
+## How processing actually flows
 
-# 🛠️ Rebuilding the Container
+`CLIRenderer.process_files()` audits and chunks the uploaded files, then calls `process_chunks()` with a `scrub_chunk` callback. That callback is what looks up each file's handler via `get_handler_for_extension()` and calls `scrub()` — if you're debugging why a file type isn't being cleaned, start there rather than in `utils/chunking.py`.
 
-If you make changes to Python code or add new files:
+## Testing
+
+There's no formal test suite yet. To sanity-check changes:
+
+```bash
+python app.py --dry-run --verbose file1.pdf
 ```
-docker-compose up --build
-```
-If you only change .html, .css, or .js files:
 
-✅ Just refresh the browser — no rebuild needed.
-# 🤝 Contributions
+Or run against the sample dirty files in rMeta's `dev/generated_dirty_files_for_test/` if you have that repo checked out alongside this one.
 
-Pull requests, forks, and ideas are welcome.
+## Packaging
 
-- Add a handler? ✅
+`rmeta.1` documents the CLI's flags — if you add or rename an argument in `cli_renderer.py`, update the man page in the same change. Packaging as a single PyInstaller executable is not recommended on Linux due to shared-library issues; see the Troubleshooting section in the README.
 
-- Suggest a privacy feature? ✅
+## License
 
-- Tweak the UI or accessibility? ✅
-
-- Improve docs? Yes please.
-
-# 🧪 Testing
-
-There’s no formal test suite yet, but:
-
-- Run locally with docker-compose up --build
-
-- Drop files into the web UI and confirm output
-
-- Watch console logs for errors or stack traces
-
-# 💡 Future Ideas
-
-- CLI mode (for field/offline usage)
-
-- Headless mode (for use over SSH or TUI)
-
-- EXIF-only fast scrubber mode
-
-- PGP decryption support (optional, advanced)
-
-- Drag-and-drop multiple files
-
-- Onion routing / airgapped workflows
-
-# 🧾 License
-
-This project is MIT licensed.
-
-Thanks for being here. You don’t need permission to start building — you have it.
+MIT.

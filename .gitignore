@@ -28,6 +28,11 @@ Thumbs.db
 *.tar
 *.gz
 
+# PyInstaller build output
+build/
+dist/
+*.spec
+
 # If you're mounting file uploads locally
 uploads/
 *.sha256.txt

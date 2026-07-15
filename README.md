@@ -53,7 +53,7 @@ Then run:
 ```
 rmeta file1.pdf file2.docx
 rmeta -d /path/to/dir --r --filetype pdf,jpg
-rmeta --cleanup
+rmeta cleanup
 ```
 
 
@@ -81,13 +81,13 @@ This will show detailed output and confirm the CLI is ready to process files. If
 
 # About rMetaCLI
 
-rMetaCLI is a command-line tool that helps you remove metadata from files without sending anything over the internet. It works entirely offline and supports encryption, hashing, and batch processing. Whether you're a journalist, lawyer, researcher, or just someone who cares about privacy, this tool is built for you.
+rMetaCLI is a command-line tool that removes metadata from files without sending anything over the internet. It works entirely offline and supports encryption, hashing, and batch processing.
 
 ---
 
 # Why rMetaCLI?
 
-rMetaCLI is designed for privacy-first, batch metadata scrubbing across multiple file types, with ephemeral session management and optional encryption/hashing. Unlike tools like **exiftool** (which focus on image metadata), rMetaCLI provides a unified CLI for PDFs, Office docs, images, and more, with secure deletion and cross-platform support. It never sends your files anywhere and is built for journalists, lawyers, researchers, and anyone who values privacy and simplicity.
+Most metadata tools, like **exiftool**, focus on images. rMetaCLI gives you one CLI for PDFs, Office docs, and images, with ephemeral session management, secure deletion, optional encryption/hashing, and cross-platform support.
 
 ---
 
@@ -122,8 +122,9 @@ On Windows, the default session folder is `%TEMP%\rmeta_uploads` unless you chan
 | `--gpg-key <path>`         | Encrypt files with your public key       | `rmeta --gpg-key /path/to/key.pub file1.pdf`    |
 | `--sha256`                 | Generate SHA256 hash files               | `rmeta --sha256 file1.pdf`                      |
 | `--dry-run`                | Preview actions without making changes   | `rmeta --dry-run file1.pdf`                     |
+| `--clean-after`            | Securely delete session files once processing finishes | `rmeta --clean-after file1.pdf`  |
 | `--verbose` or `-v`        | Show detailed logs                       | `rmeta --verbose file1.pdf`                     |
-| `--cleanup`                | Securely delete session files            | `rmeta --cleanup`                               |
+| `cleanup` (subcommand)     | Securely delete session files on demand  | `rmeta cleanup`                                  |
 | `--auto-clean-interval`    | Set auto-clean timer (defaults to 600s)        | `rmeta --auto-clean-interval 300`               |
 | `--config <path>`          | Use a custom config file (set session folder, auto-clean interval, filetype filters, logging, etc.) | `rmeta --config /path/to/config.py`             |
 | `--version`, `--help`      | Show version or help info                | `rmeta --version`                               |
@@ -324,7 +325,7 @@ rmeta --dry-run --verbose file1.pdf file2.docx
 2. Clean up:
 
 ```
-rmeta --cleanup
+rmeta cleanup
 ```
 
 ---

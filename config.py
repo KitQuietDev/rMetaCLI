@@ -7,23 +7,16 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
-# rMetaCLI Configuration Loader
-#
-# Purpose: Loads all runtime configuration from environment and .env files.
-# Audience: Anyone running rMetaCLI who wants to tweak privacy, session, or resource settings.
-#
-# This module is intentionally explicit—no magic, no surprises.
+# Loads runtime configuration from environment variables and .env files.
 
 def load_config():
-    """
-    Loads configuration from environment variables and .env file.
-    
+    """Load configuration from environment variables and .env file.
+
     Returns:
         dict: Configuration dictionary with all required settings.
     """
-    # Load .env file if it exists
     load_dotenv()
-    
+
     config = {
         "SESSION_TIMEOUT": int(os.getenv("SESSION_TIMEOUT", 600)),
         "FLASK_RUN_PORT": int(os.getenv("FLASK_RUN_PORT", 8574)),
@@ -39,17 +32,14 @@ def load_config():
         "AUTO_CLEAN_INTERVAL": int(os.getenv("AUTO_CLEAN_INTERVAL", 600)),  # seconds
     }
     
-    # Create upload directory if it doesn't exist
     upload_dir = config["UPLOAD_FOLDER"]
     if not os.path.exists(upload_dir):
         try:
             os.makedirs(upload_dir, exist_ok=True)
-            logger.info(f"📁 Created upload directory: {upload_dir}")
+            logger.info(f"Created upload directory: {upload_dir}")
         except Exception as e:
-            logger.error(f"❌ Failed to create upload directory {upload_dir}: {e}")
+            logger.error(f"Failed to create upload directory {upload_dir}: {e}")
             raise RuntimeError(f"Cannot create upload directory: {e}")
-    
-    logger.info(f"⚙️ Configuration loaded: {len(config)} settings")
-    return config
 
-    # Ensure upload directory exists (privacy: don't leak files elsewhere)
+    logger.info(f"Configuration loaded: {len(config)} settings")
+    return config

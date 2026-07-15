@@ -32,9 +32,8 @@ pyflakes==3.4.0
 pyheif==0.8.0
 pypdf>=3.9.0
 python-docx==1.2.0
+python-dotenv==1.0.1
 PyYAML==6.0.2
+tqdm==4.66.4
 typing_extensions==4.14.1
 virtualenv==20.32.0
-
-tqdm==4.66.4
-python-dotenv==1.0.1

@@ -1,3 +1,17 @@
+import os
+import threading
+import time
+import argparse
+import asyncio
+import shutil
+from tqdm import tqdm
+from datetime import datetime
+from config import load_config
+from handlers import get_handler_for_extension
+from utils.cleanup import purge_uploads, check_uploads_dir
+from utils.chunking import audit_files, chunk_files_by_size, process_chunks
+
+
 class CLIRenderer:
     def __init__(self, config):
         self.config = config
@@ -28,6 +42,10 @@ class CLIRenderer:
         parser.add_argument('--version', action='version', version='rMeta CLI v0.4.0')
         parser.add_argument('--config', type=str, help='Path to custom config file')
         parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose output')
+        parser.add_argument('--gpg-key', type=str, help='Encrypt processed files with this GPG public key')
+        parser.add_argument('--sha256', action='store_true', help='Generate SHA256 hashfiles for processed files')
+        parser.add_argument('--dry-run', action='store_true', help='Preview actions without modifying files')
+        parser.add_argument('--clean-after', action='store_true', help='Securely delete session files after processing')
 
         subparsers = parser.add_subparsers(dest="command")
         download_parser = subparsers.add_parser("download", help="Download processed results")
@@ -40,17 +58,29 @@ class CLIRenderer:
         if args.verbose:
             print("[VERBOSE] Arguments:", args)
 
-        # File or directory processing
         if args.files:
             uploaded = self.upload_files(args.files, recursive=False, filetype=args.filetype, verbose=args.verbose)
-            self.process_files(files=uploaded, filetype=args.filetype, verbose=args.verbose)
+            self.process_files(
+                files=uploaded, gpg_key=args.gpg_key, sha256=args.sha256,
+                dry_run=args.dry_run, clean_after=args.clean_after,
+                filetype=args.filetype, verbose=args.verbose,
+            )
+            if args.clean_after and not args.dry_run:
+                print("Cleaning up session files...")
+                purge_uploads(self.upload_folder)
             return
         elif args.dir:
             uploaded = self.upload_files([args.dir], recursive=args.r, filetype=args.filetype, verbose=args.verbose)
-            self.process_files(files=uploaded, filetype=args.filetype, verbose=args.verbose)
+            self.process_files(
+                files=uploaded, gpg_key=args.gpg_key, sha256=args.sha256,
+                dry_run=args.dry_run, clean_after=args.clean_after,
+                filetype=args.filetype, verbose=args.verbose,
+            )
+            if args.clean_after and not args.dry_run:
+                print("Cleaning up session files...")
+                purge_uploads(self.upload_folder)
             return
 
-        # Subcommands
         if args.command == "download":
             self.download_results(args.output)
         elif args.command == "cleanup":
@@ -82,7 +112,6 @@ class CLIRenderer:
                             if should_include(full_path):
                                 upload_file(full_path)
                 else:
-                    # Process only top-level files in the directory
                     for file_in_dir in os.listdir(f):
                         full_path = os.path.join(f, file_in_dir)
                         if os.path.isfile(full_path) and should_include(full_path):
@@ -100,7 +129,6 @@ class CLIRenderer:
 
     def process_files(self, files=None, gpg_key=None, sha256=False, dry_run=False, clean_after=False, filetype=None, verbose=False):
         print("Processing files...")
-        # Only process files just uploaded, unless files is None (fallback to all in session dir)
         if files is None:
             files = [os.path.join(self.upload_folder, f) for f in os.listdir(self.upload_folder) if os.path.isfile(os.path.join(self.upload_folder, f))]
             if filetype:
@@ -140,16 +168,63 @@ class CLIRenderer:
             print("[DRY RUN] No files were modified.")
             log_event("DRY RUN: No files were modified.")
             return
+
+        results = []
+
+        def scrub_chunk(file_list):
+            for filepath in file_list:
+                filename = os.path.basename(filepath)
+                ext = os.path.splitext(filename)[1].lower().lstrip(".")
+                handler_entry = get_handler_for_extension(ext)
+
+                file_result = {"filename": filename, "scrubbed": False, "warnings": []}
+
+                if not handler_entry:
+                    file_result["warnings"].append("Unsupported file type")
+                    results.append(file_result)
+                    log_event(f"Skipped (unsupported type): {filepath}")
+                    continue
+
+                try:
+                    scrub_fn = handler_entry.get("scrub")
+                    get_additional_messages_fn = handler_entry.get("get_additional_messages")
+                    is_async = handler_entry.get("is_async", False)
+                    msgs_is_async = handler_entry.get("msgs_is_async", False)
+
+                    if scrub_fn:
+                        if is_async:
+                            asyncio.run(scrub_fn(filepath))
+                        else:
+                            scrub_fn(filepath)
+                        file_result["scrubbed"] = True
+
+                    if get_additional_messages_fn:
+                        if msgs_is_async:
+                            extra = asyncio.run(get_additional_messages_fn(filepath))
+                        else:
+                            extra = get_additional_messages_fn(filepath)
+                        file_result["warnings"].extend(extra)
+
+                    log_event(f"Processed {filepath}")
+                except Exception as e:
+                    file_result["warnings"].append(f"Error: {e}")
+                    log_event(f"Error processing {filepath}: {e}")
+
+                results.append(file_result)
+
         chunks = chunk_files_by_size(supported, chunk_mb)
         print(f"  Processing {len(chunks)} chunks...")
-        results = []
         for chunk in tqdm(chunks, desc="Processing", unit="chunk"):
-            result = process_chunks([chunk], min_memory_mb)
-            results.append(result)
-            for file in chunk:
-                log_event(f"Processed {file}")
-        print(f"  Processing complete. Results: {results}")
-        log_event(f"Processing complete. Results: {results}")
+            process_chunks([chunk], min_memory_mb, processor=scrub_chunk)
+
+        scrubbed_count = sum(1 for r in results if r["scrubbed"])
+        print(f"  Processing complete. Scrubbed {scrubbed_count}/{len(results)} files.")
+        log_event(f"Processing complete. Scrubbed {scrubbed_count}/{len(results)} files.")
+        for r in results:
+            if r["warnings"]:
+                for w in r["warnings"]:
+                    print(f"  {r['filename']}: {w}")
+
         if sha256:
             from postprocessors.import_hashlib import generate_hash
             for file in tqdm(supported, desc="SHA256", unit="file"):
@@ -184,23 +259,7 @@ class CLIRenderer:
         print("Cleaning up session files...")
         purge_uploads(self.upload_folder)
         print("Cleanup complete.")
-import os
-import threading
-import time
-import argparse
-import shutil
-from tqdm import tqdm
-from datetime import datetime
-from config import load_config
-from utils.cleanup import purge_uploads, check_uploads_dir
-from utils.chunking import audit_files, chunk_files_by_size, process_chunks
 
-                        # --- Clean, robust CLI implementation ---
-
-
-# Loader for app.py
 
 def load_renderer(config):
-    return CLIRenderer(config)
-    return CLIRenderer(config)
     return CLIRenderer(config)
